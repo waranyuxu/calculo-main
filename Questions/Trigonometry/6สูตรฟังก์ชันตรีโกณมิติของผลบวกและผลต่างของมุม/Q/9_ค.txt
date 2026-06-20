@@ -1,0 +1,2 @@
+cos(A+B) + cos(A-B) = ?
+ก. 2sinAsinB  ข. 2sinAcosB  ค. 2cosAcosB  ง. 0

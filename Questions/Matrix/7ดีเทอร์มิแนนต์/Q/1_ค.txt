@@ -1,0 +1,2 @@
+det([[a,b],[c,d]]) = ?
+ก. ab - cd  ข. ac - bd  ค. ad - bc  ง. ad + bc

@@ -1,0 +1,2 @@
+sec θ = ?
+ก. 1/sinθ  ข. 1/cosθ  ค. 1/tanθ  ง. sinθ/cosθ

@@ -1,0 +1,2 @@
+f : A → B มีความหมายว่า?
+ก. Df = B และ Rf ⊆ A  ข. Df = A และ Rf = B  ค. Df = A และ Rf ⊆ B  ง. Df = B และ Rf = A

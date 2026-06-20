@@ -1,0 +1,2 @@
+tan(3A) = ?
+ก. 3tanA/(1-3tan²A)  ข. (3tanA - tan³A)/(1+3tan²A)  ค. (3tanA - tan³A)/(1-3tan²A)  ง. 3tanA(1-tan²A)

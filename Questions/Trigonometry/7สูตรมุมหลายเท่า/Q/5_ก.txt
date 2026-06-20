@@ -1,0 +1,2 @@
+sin(3A) = ?
+ก. 3sinA - 4sin³A  ข. 4sin³A - 3sinA  ค. 3cosA - 4cos³A  ง. 3sinAcosA

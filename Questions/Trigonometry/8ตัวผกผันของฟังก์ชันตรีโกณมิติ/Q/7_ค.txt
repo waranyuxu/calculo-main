@@ -1,0 +1,2 @@
+arcsin(-x) = ?
+ก. arcsin(x)  ข. π - arcsin(x)  ค. -arcsin(x)  ง. π + arcsin(x)

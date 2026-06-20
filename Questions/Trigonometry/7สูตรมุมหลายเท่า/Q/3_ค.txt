@@ -1,0 +1,2 @@
+cos(2A) = ? (รูปที่ใช้ cos เท่านั้น)
+ก. 1 - 2sin²A  ข. cos²A - sin²A  ค. 2cos²A - 1  ง. 2sinAcosA

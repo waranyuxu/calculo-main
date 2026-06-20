@@ -1,0 +1,30 @@
+{
+  "cli": {
+    "version": ">= 16.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "apk": {
+      "android": {
+        "buildType": "apk"
+      },
+      "distribution": "internal",
+      "environment": "preview",
+      "env": {
+        "CALCULO_EAS_ENV_FILE": ".env.anwa"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "environment": "production",
+      "env": {
+        "CALCULO_EAS_ENV_FILE": ".env.anwa"
+      }
+    }
+  }
+}

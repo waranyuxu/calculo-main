@@ -1,0 +1,2 @@
+tan(A + B) = ?
+ก. (tanA - tanB)/(1+tanAtanB)  ข. (tanA + tanB)/(1+tanAtanB)  ค. (tanA + tanB)/(1-tanAtanB)  ง. (tanA - tanB)/(1-tanAtanB)

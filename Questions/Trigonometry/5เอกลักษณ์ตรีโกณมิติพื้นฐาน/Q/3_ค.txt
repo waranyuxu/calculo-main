@@ -1,0 +1,2 @@
+csc θ = ?
+ก. 1/cosθ  ข. cosθ/sinθ  ค. 1/sinθ  ง. 1/tanθ

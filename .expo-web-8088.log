@@ -1,0 +1,26 @@
+
+> calculo@1.0.0 preweb
+> npm run generate:questions
+
+
+> calculo@1.0.0 generate:questions
+> node scripts/generate-question-course.js
+
+Generated src\generated\question-course.ts with 2 section(s).
+
+> calculo@1.0.0 web
+> node scripts/with-anwa-env.js expo start --web --clear --port 8088
+
+Starting project at C:\Users\ansux\Downloads\calculo-main
+Using src/app as the root directory for Expo Router.
+React Compiler enabled
+Starting Metro Bundler
+
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+Waiting on http://localhost:8088
+Logs for your project will appear below.
+λ Bundled 19727ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1503 modules)
+Web Bundled 20804ms node_modules\expo-router\entry.js (1347 modules)
+λ Bundled 68ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 564ms node_modules\expo-router\entry.js (1 module)
+Web Bundled 11008ms node_modules\expo-router\entry.js (1351 modules)

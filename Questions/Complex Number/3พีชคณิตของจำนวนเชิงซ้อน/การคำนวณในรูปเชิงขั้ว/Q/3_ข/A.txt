@@ -1,0 +1,1 @@
+ก. rⁿcis(n+θ)  ข. rⁿcis(nθ)  ค. nrcis(θ)  ง. rⁿcis(θ/n)

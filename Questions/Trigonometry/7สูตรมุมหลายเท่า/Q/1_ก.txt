@@ -1,0 +1,2 @@
+sin(2A) = ?
+ก. 2sinAcosA  ข. 2sin²A  ค. 2cos²A  ง. cos²A - sin²A

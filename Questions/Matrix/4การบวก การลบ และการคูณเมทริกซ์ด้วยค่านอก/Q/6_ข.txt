@@ -1,0 +1,2 @@
+[[a,b],[c,d]] + [[e,f],[g,h]] = ?
+ก. [[ae,bf],[cg,dh]]  ข. [[a+e,b+f],[c+g,d+h]]  ค. [[a+f,b+e],[c+h,d+g]]  ง. [[ae+bg,af+bh],[ce+dg,cf+dh]]

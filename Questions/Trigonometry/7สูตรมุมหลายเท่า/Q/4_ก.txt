@@ -1,0 +1,2 @@
+tan(2A) = ?
+ก. 2tanA/(1-tan²A)  ข. 2tanA/(1+tan²A)  ค. tanA/(1-tan²A)  ง. (1-tan²A)/2tanA

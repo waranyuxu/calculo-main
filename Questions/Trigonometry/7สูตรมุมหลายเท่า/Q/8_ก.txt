@@ -1,0 +1,2 @@
+จาก cos(2A) = 1 - 2sin²A แล้ว 2sin²A = ?
+ก. 1 - cos(2A)  ข. 1 + cos(2A)  ค. cos(2A) - 1  ง. 2cos²A

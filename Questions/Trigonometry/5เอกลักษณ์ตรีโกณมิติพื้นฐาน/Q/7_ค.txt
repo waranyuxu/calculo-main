@@ -1,0 +1,2 @@
+cot θ = ?
+ก. sinθ/cosθ  ข. 1/sinθ  ค. cosθ/sinθ  ง. 1/cosθ

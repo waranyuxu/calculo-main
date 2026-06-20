@@ -1,0 +1,2 @@
+โดเมนของ g∘f คือ?
+ก. {x ∈ Dg | g(x) ∈ Df}  ข. Df ∪ Dg  ค. Df ∩ Dg  ง. {x ∈ Df | f(x) ∈ Dg}

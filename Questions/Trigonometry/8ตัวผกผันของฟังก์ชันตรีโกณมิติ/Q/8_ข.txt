@@ -1,0 +1,2 @@
+arccos(-x) = ?
+ก. -arccos(x)  ข. π - arccos(x)  ค. arccos(x)  ง. π + arccos(x)

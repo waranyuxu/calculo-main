@@ -1,0 +1,13 @@
+สูตรฟังก์ชันตรีโกณมิติของผลบวกและผลต่างของมุม
+สูตรของฟังชันก์ Sine
+ - sin(A + B) = sinAcosB + sinBcosA
+ - sin(A - B) = sinAcosB - sinBcosA
+สูตรของฟังชันก์ Cosine
+ - cos(A + B) = cosAcosB - sinAsinB
+ - cos(A - B) = cosAcosB + sinAsinB
+สูตรของฟังชันก์ Tangent
+ - tan(A + B) = (tanA + tanB)/(1-tanAtanB)
+ - tan(A - B) = (tanA - tanB)/(1+tanAtanB) 
+ตัวอย่าง sin(75°)
+ - sin(75°) = sin(30° + 45°) = sin30°cos45° + sin45°cos30° = (1/2)(1/√2) + (1/√2)(√3/2) 
+ - sin(75°) = (1+√3)/(2√2)

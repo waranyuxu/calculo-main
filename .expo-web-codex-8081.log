@@ -1,0 +1,14 @@
+Starting project at C:\Users\ansux\Downloads\calculo-main
+Using src/app as the root directory for Expo Router.
+React Compiler enabled
+Starting Metro Bundler
+
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+λ Bundled 21264ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1608 modules)
+Web Bundled 23525ms node_modules\expo-router\entry.js (1390 modules)
+λ Bundled 96ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 1062ms node_modules\expo-router\entry.js (1 module)
+λ Bundled 2691ms node_modules\expo\node_modules\@expo\cli\node_modules\@expo\router-server\node\render.js (1 module)
+Web Bundled 3556ms node_modules\expo-router\entry.js (1 module)

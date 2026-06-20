@@ -1,0 +1,14 @@
+สูตรมุมหลายเท่าพัฒนามาจากสูตรผลบวกมุม เมื่อ A = B
+ - sin(A + B) = sinAcosB + sinBcosA เมื่อ A = B 
+ - จะได้ sin(2A) = 2sinAcosA
+สูตรมุม 2 เท่า
+ - sin(2A) = 2sinAcosA / 2tanA/(1 + tan²A)
+ - cos(2A) = 1 - 2sin²A
+           = 2cos²A - 1
+           = cos²A - sin²A
+           = (1 - tan²A)/(1 + tan²A)
+ - tan(2A) = 2tanA/(1 - tan²A)
+สูตรมุม 3 เท่า
+ - sin(3A) = 3sinA - 4sin³A
+ - cos(3A) = 4cos³A - 3cosA
+ - tan(3A) = (3tanA - tan³A)/(1 - 3tan²A)

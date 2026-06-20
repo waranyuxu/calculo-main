@@ -1,0 +1,2 @@
+sin(A - B) = ?
+ก. sinAcosB + cosAsinB  ข. sinAcosB - cosAsinB  ค. cosAcosB + sinAsinB  ง. cosAcosB - sinAsinB
