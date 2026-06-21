@@ -109,6 +109,27 @@ function getNumberFromKeys(
   return Number.NaN;
 }
 
+function getProgressIndexFromKeys(
+  source: Record<string, unknown> | null | undefined,
+  indexKeys: string[],
+  numberKeys: string[],
+  fallback: number,
+) {
+  const indexValue = getNumberFromKeys(source, indexKeys);
+
+  if (Number.isFinite(indexValue)) {
+    return Math.max(0, Math.floor(indexValue));
+  }
+
+  const numberValue = getNumberFromKeys(source, numberKeys);
+
+  if (Number.isFinite(numberValue)) {
+    return Math.max(0, Math.floor(numberValue - 1));
+  }
+
+  return fallback;
+}
+
 function getCompletedStagesFromPosition(
   source: Record<string, unknown> | null | undefined,
 ) {
@@ -164,6 +185,7 @@ function getCompletedStagesFromPosition(
 
 function normalizeProgress(value: Partial<MathProgress> | null | undefined): MathProgress {
   const data = value as Record<string, unknown> | null | undefined;
+  const storedCompletedStages = Number(value?.completedStages);
   const legacyCompletedUnits = Number(
     (value as Partial<MathProgress> & { completedUnits?: number })?.completedUnits,
   );
@@ -174,22 +196,33 @@ function normalizeProgress(value: Partial<MathProgress> | null | undefined): Mat
   const completedStagesFromPosition = getCompletedStagesFromPosition(data);
   const completedStages = Math.max(
     0,
-    Math.min(
-      maxStages,
-      Number(value?.completedStages) ||
-        completedStagesFromLegacy ||
-        completedStagesFromPosition ||
-        0,
-    ),
+    Number.isFinite(storedCompletedStages)
+      ? storedCompletedStages
+      : completedStagesFromLegacy || completedStagesFromPosition || 0,
   );
   const position = getPositionFromCompletedStages(completedStages);
 
   return {
     calcuCoin: getNonNegativeNumber(data, CALCU_COIN_FIELD_ALIASES),
     completedStages,
-    currentSectionIndex: position.sectionIndex,
-    currentUnitIndex: position.unitIndex,
-    currentStageIndex: position.stageIndex,
+    currentSectionIndex: getProgressIndexFromKeys(
+      data,
+      ["currentSectionIndex", "sectionIndex", "currentChapterIndex"],
+      ["currentChapter", "currentSection", "chapter", "section"],
+      position.sectionIndex,
+    ),
+    currentUnitIndex: getProgressIndexFromKeys(
+      data,
+      ["currentUnitIndex", "unitIndex"],
+      ["currentUnit", "unit"],
+      position.unitIndex,
+    ),
+    currentStageIndex: getProgressIndexFromKeys(
+      data,
+      ["currentStageIndex", "stageIndex"],
+      ["currentStage", "stage"],
+      position.stageIndex,
+    ),
     updatedAt:
       typeof value?.updatedAt === "string"
         ? value.updatedAt
