@@ -6,24 +6,63 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function leftPlayerAccountMatches() {
+      return signedIn()
+        && ("players" in resource.data)
+        && ("left" in resource.data.players)
+        && ("accountId" in resource.data.players.left)
+        && resource.data.players.left.accountId == request.auth.uid;
+    }
+
+    function rightPlayerAccountMatches() {
+      return signedIn()
+        && ("players" in resource.data)
+        && ("right" in resource.data.players)
+        && ("accountId" in resource.data.players.right)
+        && resource.data.players.right.accountId == request.auth.uid;
+    }
+
+    function requestLeftPlayerAccountMatches() {
+      return signedIn()
+        && ("players" in request.resource.data)
+        && ("left" in request.resource.data.players)
+        && ("accountId" in request.resource.data.players.left)
+        && request.resource.data.players.left.accountId == request.auth.uid;
+    }
+
+    function requestRightPlayerAccountMatches() {
+      return signedIn()
+        && ("players" in request.resource.data)
+        && ("right" in request.resource.data.players)
+        && ("accountId" in request.resource.data.players.right)
+        && request.resource.data.players.right.accountId == request.auth.uid;
+    }
+
     function roomParticipant() {
       return signedIn()
         && (("hostAuthId" in resource.data
             && resource.data.hostAuthId == request.auth.uid)
           || ("guestAuthId" in resource.data
             && resource.data.guestAuthId == request.auth.uid)
-          || resource.data.hostId == request.auth.uid
-          || resource.data.guestId == request.auth.uid);
+          || leftPlayerAccountMatches()
+          || rightPlayerAccountMatches()
+          || (("hostId" in resource.data)
+            && resource.data.hostId == request.auth.uid)
+          || (("guestId" in resource.data)
+            && resource.data.guestId == request.auth.uid));
     }
 
     function validWaitingRoomJoin() {
       return signedIn()
         && resource.data.status == "waiting"
+        && (!("hostAuthId" in resource.data)
+          || resource.data.hostAuthId != request.auth.uid)
         && request.resource.data.hostId == resource.data.hostId
         && (!("hostAuthId" in resource.data)
           || request.resource.data.hostAuthId == resource.data.hostAuthId)
         && request.resource.data.guestAuthId == request.auth.uid
-        && request.resource.data.status == "playing";
+        && request.resource.data.status == "playing"
+        && requestRightPlayerAccountMatches();
     }
 
     match /mathProgress/{userId} {
@@ -51,7 +90,8 @@ service cloud.firestore {
 
       allow create: if signedIn()
         && request.resource.data.hostAuthId == request.auth.uid
-        && request.resource.data.status == "waiting";
+        && request.resource.data.status == "waiting"
+        && requestLeftPlayerAccountMatches();
 
       allow update: if signedIn()
         && (roomParticipant() || validWaitingRoomJoin());
@@ -59,7 +99,9 @@ service cloud.firestore {
       allow delete: if signedIn()
         && (("hostAuthId" in resource.data
             && resource.data.hostAuthId == request.auth.uid)
-          || resource.data.hostId == request.auth.uid);
+          || leftPlayerAccountMatches()
+          || (("hostId" in resource.data)
+            && resource.data.hostId == request.auth.uid));
     }
 
     match /competitionLeaderboard/{userId} {

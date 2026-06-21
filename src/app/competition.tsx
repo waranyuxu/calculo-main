@@ -450,8 +450,8 @@ export default function Competition() {
   const safeSelectedIndex =
     activeRoom && selectedIndex < activeRoom.questions.length ? selectedIndex : 0;
   const currentSide = useMemo(
-    () => getCompetitionSideForPlayer(room, player?.id ?? null) ?? side,
-    [player?.id, room, side],
+    () => getCompetitionSideForPlayer(room, player) ?? side,
+    [player, room, side],
   );
   const rewardClaimedForCurrentSide =
     activeRoom && currentSide ? activeRoom.rewardClaims[currentSide] === true : false;
@@ -945,7 +945,7 @@ export default function Competition() {
   const handleLeave = useCallback(async () => {
     if (roomId && player) {
       try {
-        await leaveCompetitionRoom(roomId, player.id);
+        await leaveCompetitionRoom(roomId, player);
       } catch {
         // Leaving is best-effort; the UI resets either way.
       }

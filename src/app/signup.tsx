@@ -2,7 +2,6 @@ import AuthForm from "@/components/AuthForm";
 import {
   getDisplayNameFromUser,
   getAuthErrorMessage,
-  loginAnonymously,
   signUpWithEmail,
 } from "@/services/auth-service";
 import { savePlayerProfile } from "@/services/profile-service";
@@ -26,12 +25,7 @@ export default function Signup() {
       showConfirmPassword
       onBack={() => router.back()}
       onGuestSubmit={async () => {
-        try {
-          await loginAnonymously();
-          router.replace("/home");
-        } catch (error) {
-          throw new Error(getAuthErrorMessage(error, language));
-        }
+        router.replace("/home");
       }}
       onSwitch={() => router.replace("/login")}
       onSubmit={async (email, password, confirmPassword) => {

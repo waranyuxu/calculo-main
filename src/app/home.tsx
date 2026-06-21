@@ -23,11 +23,11 @@ import {
   getAbsoluteQuestionStageIndex,
   getQuestionCoursePosition,
   getQuestionCourseTotals,
-  isQuestionSectionUnlocked,
   isQuestionStageCompleted,
   isQuestionStageUnlocked,
   isQuestionUnitCompleted,
   isQuestionUnitUnlocked,
+  moveToQuestionSection,
 } from "@/utils/question-course-progress";
 import { Image, type ImageStyle } from "expo-image";
 import { useRouter } from "expo-router";
@@ -80,6 +80,9 @@ export default function Home() {
   const [selectedLearningUnit, setSelectedLearningUnit] =
     useState<SelectedLearningUnit | null>(null);
   const [selectedAnswerKey, setSelectedAnswerKey] = useState<string | null>(null);
+  const [savingSectionIndex, setSavingSectionIndex] = useState<number | null>(
+    null,
+  );
   const [savingStageKey, setSavingStageKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -215,27 +218,56 @@ export default function Home() {
   const previousSection = canGoBackSection
     ? courseSections[position.sectionIndex - 1]
     : undefined;
+  const nextSectionIndex = position.sectionIndex + 1;
+  const nextSection =
+    nextSectionIndex < courseSections.length
+      ? courseSections[nextSectionIndex]
+      : undefined;
+  const nextSectionAction =
+    nextSectionIndex > progressPosition.sectionIndex ? "ข้ามบท" : "บทถัดไป";
 
   const handleSectionSelect = useCallback(
-    (sectionIndex: number) => {
+    async (sectionIndex: number) => {
       const section = courseSections[sectionIndex];
 
-      if (
-        !section ||
-        sectionIndex > progressPosition.sectionIndex ||
-        !isQuestionSectionUnlocked(sectionIndex, progress, courseSections)
-      ) {
+      if (!section || savingSectionIndex !== null) {
         return;
       }
 
       setSelectedAnswerKey(null);
       setSelectedStage(null);
+      setSectionsOpen(false);
+
+      if (sectionIndex > progressPosition.sectionIndex) {
+        setSavingSectionIndex(sectionIndex);
+
+        try {
+          const nextProgress = await moveToQuestionSection(
+            sectionIndex,
+            progress,
+            authUser?.uid,
+            courseSections,
+          );
+          setProgress(nextProgress);
+          setViewSectionIndex(null);
+        } finally {
+          setSavingSectionIndex(null);
+        }
+
+        return;
+      }
+
       setViewSectionIndex(
         sectionIndex < progressPosition.sectionIndex ? sectionIndex : null,
       );
-      setSectionsOpen(false);
     },
-    [courseSections, progress, progressPosition.sectionIndex],
+    [
+      authUser?.uid,
+      courseSections,
+      progress,
+      progressPosition.sectionIndex,
+      savingSectionIndex,
+    ],
   );
 
   const handleStagePress = useCallback(
@@ -495,29 +527,62 @@ export default function Home() {
         </Text>
       </View>
 
-      {previousSection ? (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => {
-            handleSectionSelect(position.sectionIndex - 1);
-          }}
-          style={({ pressed }) => [
-            styles.backSectionButton,
-            {
-              backgroundColor: colors.blueLight,
-              borderColor: colors.blue,
-              borderBottomColor: colors.blueDark,
-            },
-            pressed && styles.pressed,
-          ]}
-        >
-          <Text style={[styles.backSectionText, { color: colors.blue }]}>
-            ย้อนกลับบท
-          </Text>
-          <Text style={[styles.backSectionMeta, { color: colors.textSoft }]}>
-            {previousSection.title}
-          </Text>
-        </Pressable>
+      {previousSection || nextSection ? (
+        <View style={styles.sectionNavRow}>
+          {previousSection ? (
+            <Pressable
+              accessibilityRole="button"
+              disabled={savingSectionIndex !== null}
+              onPress={() => {
+                void handleSectionSelect(position.sectionIndex - 1);
+              }}
+              style={({ pressed }) => [
+                styles.sectionNavButton,
+                {
+                  backgroundColor: colors.blueLight,
+                  borderColor: colors.blue,
+                  borderBottomColor: colors.blueDark,
+                },
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={[styles.sectionNavText, { color: colors.blue }]}>
+                ย้อนกลับบท
+              </Text>
+              <Text style={[styles.sectionNavMeta, { color: colors.textSoft }]}>
+                {previousSection.title}
+              </Text>
+            </Pressable>
+          ) : null}
+
+          {nextSection ? (
+            <Pressable
+              accessibilityRole="button"
+              disabled={savingSectionIndex !== null}
+              onPress={() => {
+                void handleSectionSelect(nextSectionIndex);
+              }}
+              style={({ pressed }) => [
+                styles.sectionNavButton,
+                {
+                  backgroundColor: colors.blueLight,
+                  borderColor: colors.blue,
+                  borderBottomColor: colors.blueDark,
+                },
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={[styles.sectionNavText, { color: colors.blue }]}>
+                {savingSectionIndex === nextSectionIndex
+                  ? "กำลังข้าม..."
+                  : nextSectionAction}
+              </Text>
+              <Text style={[styles.sectionNavMeta, { color: colors.textSoft }]}>
+                {nextSection.title}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
       ) : null}
 
       <Pressable
@@ -765,13 +830,7 @@ export default function Home() {
             >
               {courseSections.map((section, index) => {
                 const active = index === position.sectionIndex;
-                const unlocked = isQuestionSectionUnlocked(
-                  index,
-                  progress,
-                  courseSections,
-                );
-                const selectable =
-                  unlocked && index <= progressPosition.sectionIndex;
+                const futureSection = index > progressPosition.sectionIndex;
                 const stageCount = section.units.reduce(
                   (sum, unit) => sum + unit.stages.length,
                   0,
@@ -780,19 +839,22 @@ export default function Home() {
                 return (
                   <Pressable
                     accessibilityRole="button"
-                    disabled={!selectable}
+                    disabled={savingSectionIndex !== null}
                     key={section.title}
                     onPress={() => {
-                      handleSectionSelect(index);
+                      void handleSectionSelect(index);
                     }}
                     style={({ pressed }) => [
                       styles.sectionRow,
                       {
                         backgroundColor: active ? colors.blueLight : colors.surface,
-                        borderColor: active ? colors.blue : colors.grayBorder,
+                        borderColor: active
+                          ? colors.blue
+                          : futureSection
+                            ? colors.green
+                            : colors.grayBorder,
                       },
-                      pressed && selectable && styles.pressed,
-                      !selectable && styles.sectionRowDisabled,
+                      pressed && savingSectionIndex === null && styles.pressed,
                     ]}
                   >
                     <Text
@@ -807,18 +869,30 @@ export default function Home() {
                       <Text
                         style={[
                           styles.sectionRowTitle,
-                          { color: unlocked ? colors.text : colors.gray },
+                          { color: colors.text },
                         ]}
                       >
                         {section.title}
                       </Text>
                       <Text style={[styles.sectionRowMeta, { color: colors.textSoft }]}>
-                        {format(copy.home.sectionMeta, {
-                          stages: stageCount,
-                          units: section.units.length,
-                        })}
+                        {savingSectionIndex === index
+                          ? "กำลังข้ามไปด่าน 1..."
+                          : format(copy.home.sectionMeta, {
+                              stages: stageCount,
+                              units: section.units.length,
+                            })}
                       </Text>
                     </View>
+                    {futureSection ? (
+                      <View
+                        style={[
+                          styles.sectionSkipBadge,
+                          { backgroundColor: colors.green },
+                        ]}
+                      >
+                        <Text style={styles.sectionSkipBadgeText}>ข้าม</Text>
+                      </View>
+                    ) : null}
                   </Pressable>
                 );
               })}
@@ -1183,31 +1257,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
-  backSectionButton: {
+  sectionNavRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginHorizontal: 14,
+    marginTop: 10,
+  },
+  sectionNavButton: {
     alignItems: "center",
     borderBottomWidth: 4,
     borderRadius: 12,
     borderWidth: 2,
-    flexDirection: "row",
+    flex: 1,
     gap: 10,
     justifyContent: "center",
-    marginHorizontal: 14,
-    marginTop: 10,
     minHeight: 48,
+    minWidth: 0,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
-  backSectionMeta: {
-    flex: 1,
+  sectionNavMeta: {
     fontFamily: FONTS.bold,
     fontSize: 13,
     lineHeight: 18,
     minWidth: 0,
+    textAlign: "center",
   },
-  backSectionText: {
+  sectionNavText: {
     fontFamily: FONTS.extra,
     fontSize: 15,
     lineHeight: 20,
+    textAlign: "center",
   },
   competitionAction: {
     alignItems: "center",
@@ -1539,11 +1619,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
-  sectionRowDisabled: {
-    opacity: 0.55,
-  },
   sectionNumber: { fontFamily: FONTS.extra, fontSize: 17, width: 24 },
   sectionRowText: { flex: 1 },
   sectionRowTitle: { fontFamily: FONTS.extra, fontSize: 16 },
   sectionRowMeta: { fontFamily: FONTS.bold, fontSize: 12, marginTop: 2 },
+  sectionSkipBadge: {
+    alignItems: "center",
+    borderRadius: 10,
+    justifyContent: "center",
+    minHeight: 28,
+    paddingHorizontal: 10,
+  },
+  sectionSkipBadgeText: {
+    color: COLORS.white,
+    fontFamily: FONTS.extra,
+    fontSize: 12,
+    lineHeight: 16,
+  },
 });

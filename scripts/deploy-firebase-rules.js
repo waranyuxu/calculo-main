@@ -1,4 +1,4 @@
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
@@ -49,6 +49,10 @@ function readEnvFile(filename) {
     }, {});
 }
 
+function envFileExists(filename) {
+  return fs.existsSync(path.join(projectRoot, filename));
+}
+
 function getArgValue(name) {
   const inlineArg = args.find((arg) => arg.startsWith(`--${name}=`));
 
@@ -68,7 +72,11 @@ function resolveEnvFile() {
     return ".env.anwa";
   }
 
-  if (!envName || envName === "default") {
+  if (!envName) {
+    return envFileExists(".env.anwa") ? ".env.anwa" : ".env";
+  }
+
+  if (envName === "default") {
     return ".env";
   }
 
@@ -92,6 +100,14 @@ function resolveDeployTargets() {
   return targets.length ? targets.join(",") : "firestore:rules,storage:rules";
 }
 
+function resolveProjectId(env) {
+  return (
+    env.EXPO_PUBLIC_LOGIN_FIREBASE_PROJECT_ID ||
+    env.EXPO_PUBLIC_APP_FIREBASE_PROJECT_ID ||
+    env.EXPO_PUBLIC_FIREBASE_PROJECT_ID
+  );
+}
+
 if (process.argv.includes("--help") || process.argv.includes("-h")) {
   console.log(
     [
@@ -102,8 +118,11 @@ if (process.argv.includes("--help") || process.argv.includes("-h")) {
       "",
       "Options:",
       "  --env anwa       Use .env.anwa",
+      "  --env default    Use .env",
       "  --firestore      Deploy only Firestore rules",
       "  --storage        Deploy only Storage rules",
+      "",
+      "When no --env is passed, .env.anwa is used if it exists.",
     ].join("\n"),
   );
   process.exit(0);
@@ -111,11 +130,13 @@ if (process.argv.includes("--help") || process.argv.includes("-h")) {
 
 const envFile = resolveEnvFile();
 const env = readEnvFile(envFile);
-const projectId = env.EXPO_PUBLIC_FIREBASE_PROJECT_ID;
+const projectId = resolveProjectId(env);
 const deployTargets = resolveDeployTargets();
 
 if (!projectId) {
-  console.error(`Missing EXPO_PUBLIC_FIREBASE_PROJECT_ID in ${envFile}`);
+  console.error(
+    `Missing Firebase project id in ${envFile}. Expected EXPO_PUBLIC_LOGIN_FIREBASE_PROJECT_ID, EXPO_PUBLIC_APP_FIREBASE_PROJECT_ID, or EXPO_PUBLIC_FIREBASE_PROJECT_ID.`,
+  );
   process.exit(1);
 }
 
@@ -125,8 +146,18 @@ if (!/^[a-z0-9-]+$/i.test(projectId)) {
 }
 
 try {
-  execSync(
-    `npx -y firebase-tools@latest deploy --only ${deployTargets} --project ${projectId}`,
+  console.log(`Deploying Firebase rules from ${envFile} to ${projectId}...`);
+  execFileSync(
+    process.platform === "win32" ? "npx.cmd" : "npx",
+    [
+      "-y",
+      "firebase-tools@latest",
+      "deploy",
+      "--only",
+      deployTargets,
+      "--project",
+      projectId,
+    ],
     {
       cwd: projectRoot,
       stdio: "inherit",

@@ -183,6 +183,40 @@ export function isQuestionStageCompleted(
   );
 }
 
+export async function moveToQuestionSection(
+  sectionIndex: number,
+  progress: MathProgress,
+  userId?: string | null,
+  course: QuestionCourse = QUESTION_COURSE,
+) {
+  if (!course[sectionIndex]) {
+    return progress;
+  }
+
+  const nextCompletedStages = Math.max(
+    progress.completedStages,
+    getAbsoluteQuestionStageIndex(sectionIndex, 0, 0, course),
+  );
+  const nextPosition = getQuestionCoursePosition(
+    {
+      ...progress,
+      completedStages: nextCompletedStages,
+    },
+    course,
+  );
+
+  return saveMathProgress(
+    {
+      ...progress,
+      completedStages: nextCompletedStages,
+      currentSectionIndex: nextPosition.sectionIndex,
+      currentStageIndex: nextPosition.stageIndex,
+      currentUnitIndex: nextPosition.unitIndex,
+    },
+    userId,
+  );
+}
+
 export async function completeQuestionStage(
   sectionIndex: number,
   unitIndex: number,

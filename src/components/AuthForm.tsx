@@ -98,7 +98,7 @@ export default function AuthForm({
     password.length < 6 ||
     (showConfirmPassword && !confirmPassword) ||
     !isFirebaseAuthConfigured();
-  const guestDisabled = loading || guestLoading || !isFirebaseAuthConfigured();
+  const guestDisabled = loading || guestLoading;
 
   return (
     <SafeAreaView

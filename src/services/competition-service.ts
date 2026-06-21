@@ -144,6 +144,8 @@ export type CompetitionLeaderboardEntry = {
   wins: number;
 };
 
+type CompetitionPlayerIdentity = CompetitionPlayer | string | null | undefined;
+
 const COMPETITION_COLLECTION = "competitionRooms";
 const LEADERBOARD_COLLECTION = "competitionLeaderboard";
 const MATH_PROGRESS_COLLECTION = "mathProgress";
@@ -183,6 +185,31 @@ async function getPlayerSessionId(accountId: string) {
 
 function getRewardOwnerId(player: CompetitionPlayer) {
   return player.accountId || player.id;
+}
+
+function getIdentityPlayerId(identity: CompetitionPlayerIdentity) {
+  return typeof identity === "string" ? identity : identity?.id ?? "";
+}
+
+function getIdentityAccountId(identity: CompetitionPlayerIdentity) {
+  return typeof identity === "string" ? "" : identity?.accountId ?? "";
+}
+
+function storedPlayerMatches(
+  storedPlayer: CompetitionPlayer | undefined,
+  identity: CompetitionPlayerIdentity,
+) {
+  if (!storedPlayer || !identity) {
+    return false;
+  }
+
+  const playerId = getIdentityPlayerId(identity);
+  const accountId = getIdentityAccountId(identity);
+
+  return (
+    (Boolean(playerId) && storedPlayer.id === playerId) ||
+    (Boolean(accountId) && storedPlayer.accountId === accountId)
+  );
 }
 
 function createRoomCode() {
@@ -876,7 +903,7 @@ async function claimWinnerRewardInTransaction({
     return undefined;
   }
 
-  const winningSide = getCompetitionSideForPlayer(room, player.id);
+  const winningSide = getCompetitionSideForPlayer(room, player);
 
   if (winningSide !== winner || room.rewardClaims[winner]) {
     return undefined;
@@ -987,17 +1014,25 @@ async function loadCompetitionPlayerProfile(user: User) {
 
 export function getCompetitionSideForPlayer(
   room: CompetitionRoom | null,
-  playerId: string | null,
+  player: CompetitionPlayerIdentity,
 ): CompetitionSide | null {
-  if (!room || !playerId) {
+  if (!room || !player) {
     return null;
   }
 
-  if (room.players.left.id === playerId) {
+  const accountId = getIdentityAccountId(player);
+
+  if (
+    storedPlayerMatches(room.players.left, player) ||
+    (Boolean(accountId) && room.hostAuthId === accountId)
+  ) {
     return "left";
   }
 
-  if (room.players.right?.id === playerId) {
+  if (
+    storedPlayerMatches(room.players.right, player) ||
+    (Boolean(accountId) && room.guestAuthId === accountId)
+  ) {
     return "right";
   }
 
@@ -1086,7 +1121,7 @@ export async function joinCompetitionRoom(
     }
 
     const room = normalizeRoom(snapshot.id, snapshot.data());
-    const existingSide = getCompetitionSideForPlayer(room, player.id);
+    const existingSide = getCompetitionSideForPlayer(room, player);
 
     if (existingSide) {
       return { roomId: snapshot.id, side: existingSide };
@@ -1161,7 +1196,7 @@ export async function findOrCreateCompetitionRoom(
     if (
       room.matchmaking &&
       room.mode === mode &&
-      room.hostId === player.id &&
+      getCompetitionSideForPlayer(room, player) === "left" &&
       !room.players.right
     ) {
       return { roomId: room.id, side: "left" };
@@ -1174,7 +1209,7 @@ export async function findOrCreateCompetitionRoom(
     if (
       !room.matchmaking ||
       room.mode !== mode ||
-      room.hostId === player.id ||
+      Boolean(getCompetitionSideForPlayer(room, player)) ||
       room.players.right
     ) {
       continue;
@@ -1192,7 +1227,7 @@ export async function findOrCreateCompetitionRoom(
         freshRoom.mode !== mode ||
         !freshRoom.matchmaking ||
         freshRoom.status !== "waiting" ||
-        freshRoom.hostId === player.id ||
+        Boolean(getCompetitionSideForPlayer(freshRoom, player)) ||
         freshRoom.players.right
       ) {
         return null;
@@ -1337,8 +1372,7 @@ export async function submitCompetitionAnswer(
       };
     }
 
-    const sidePlayer = room.players[side];
-    if (!sidePlayer || sidePlayer.id !== player.id) {
+    if (getCompetitionSideForPlayer(room, player) !== side) {
       throw new Error("not-room-player");
     }
 
@@ -1557,7 +1591,7 @@ export async function finishCompetitionRoom(
       };
     }
 
-    if (!getCompetitionSideForPlayer(room, player.id)) {
+    if (!getCompetitionSideForPlayer(room, player)) {
       throw new Error("not-room-player");
     }
 
@@ -1576,7 +1610,7 @@ export async function finishCompetitionRoom(
       return {
         correct: false,
         finished: false,
-        score: finalScores[getCompetitionSideForPlayer(room, player.id) ?? "left"],
+        score: finalScores[getCompetitionSideForPlayer(room, player) ?? "left"],
       };
     }
 
@@ -1637,7 +1671,10 @@ export async function claimCompetitionReward(
   });
 }
 
-export async function leaveCompetitionRoom(roomId: string, playerId: string) {
+export async function leaveCompetitionRoom(
+  roomId: string,
+  player: CompetitionPlayer,
+) {
   const db = getCompetitionFirebaseDb();
   const roomRef = doc(db, COMPETITION_COLLECTION, roomId);
 
@@ -1648,13 +1685,13 @@ export async function leaveCompetitionRoom(roomId: string, playerId: string) {
     }
 
     const room = normalizeRoom(snapshot.id, snapshot.data());
-    const isPlayer = room.hostId === playerId || room.guestId === playerId;
+    const playerSide = getCompetitionSideForPlayer(room, player);
 
-    if (!isPlayer || room.status === "finished") {
+    if (!playerSide || room.status === "finished") {
       return;
     }
 
-    if (room.status === "waiting" && room.hostId === playerId) {
+    if (room.status === "waiting" && playerSide === "left") {
       transaction.delete(roomRef);
       return;
     }

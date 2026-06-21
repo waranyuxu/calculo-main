@@ -1,7 +1,6 @@
 import AuthForm from "@/components/AuthForm";
 import {
   getAuthErrorMessage,
-  loginAnonymously,
   loginWithEmail,
 } from "@/services/auth-service";
 import { useLanguage } from "@/i18n/language";
@@ -25,12 +24,7 @@ export default function Login() {
       onBack={() => router.back()}
       onForgotPassword={() => router.push("/forgot-password")}
       onGuestSubmit={async () => {
-        try {
-          await loginAnonymously();
-          router.replace("/home");
-        } catch (error) {
-          throw new Error(getAuthErrorMessage(error, language));
-        }
+        router.replace("/home");
       }}
       onSwitch={() => router.replace("/signup")}
       onSubmit={async (email, password) => {
